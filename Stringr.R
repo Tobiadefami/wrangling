@@ -1,6 +1,5 @@
 # STRINGS WITH Stringr
 library(tidyverse)
-library(stringr)
 
 # string basics
 string1 <- "This is a string"
@@ -215,3 +214,137 @@ x <- c("a", "a b", "a b c")
 str_extract_all(x, "[a-z]", simplify = T)
 
 # Grouped matches
+noun <- "(a|the) ([^ ]+)"
+
+has_noun <- sentences %>% 
+  str_subset(noun) %>% 
+  head(10)
+has_noun %>% 
+  str_extract(noun)
+# this gives each individual coomponent
+has_noun %>% 
+  str_match(noun)
+
+# if your data is in a tibble use tidyr::extract()
+tibble(sentence = sentences) %>% 
+  tidyr::extract(
+    sentence, c("article", "noun"), "(a|the) ([^ ]+)",
+    remove = F
+  )
+
+# Replacing Matches
+
+# Replacing a pattern with a fixed string
+x <- c("apple", "pear", "banana")
+str_replace(x, "[aeiou]", ".")
+str_replace_all(x, "[aeiou]", ".")
+
+# you can perform multiple replacements by supplying a named vector
+x <- c("1 house", "2 cars", "3 people")
+str_replace_all(x, c("1" = "one", "2" = "two", "3" = "three"))
+
+# instead of replacing with a fixed string, you can use backreferences
+sentences %>% 
+  str_replace("([^ ]+) ([^ ]+) ([^ ]+)", "\\1 \\3 \\2" ) %>% 
+  head(5)
+# compare
+sentences %>% 
+  head(5)
+
+# Splitting
+sentences %>% 
+  head(5) %>% 
+  str_split(" ") # this reurns a list
+
+# if it's a 1-length vector
+"a|b|c|d" %>% 
+  str_split("\\|") %>% 
+  .[[1]] # extract the first element of the list
+
+# use simplify = T to turn it into a vector
+sentences %>% 
+  head(5) %>% 
+  str_split(" ", simplify = T)
+
+# a max number of pieces can also be requested
+fields <- c("Name: Chief", "Country: NG", "Gender: M")
+fields %>% 
+  str_split(": ", n = 2, simplify = T)
+
+# Splitting by character, line, sentence, and word boundary()
+x <- "This is a sentence. This is another sentence."
+str_view_all(x, boundary("sentence"))
+
+str_split(x, " ")[[1]]
+str_split(x, boundary("word"))[[1]]
+
+# Other Types of Patterns
+
+# the regular call
+str_view(fruit, "nana")
+# is shortened for
+str_view(fruit, regex("nana"))
+
+# ignore_case = TRUE
+bananas <- c("banana", "Banana", "BANANA")
+str_view(bananas, "banana")
+str_view(bananas, regex("banana", ignore_case = TRUE))
+
+# multiline = TRUE
+x <- "Line 1\nLine 2\nLine 3"
+str_extract_all(x, "^Line")[[1]]
+str_extract_all(x, regex("^Line", multiline = T))
+
+# comments = TRUE
+phone <- regex("
+  \\(?     # optional opening parens
+  (\\d{3}) # area code
+  [)- ]?   # optional closing parens, dash, or space
+  (\\d{3}) # another three numbers
+  [ -]?    # optional space or dash
+  (\\d{3}) # three more numbers",
+  comments = T )
+
+str_match("514-791-8141", phone)
+
+# Functions useful instead of regex()
+
+# fixed()
+library(microbenchmark)
+microbenchmark::microbenchmark(
+  fixed = str_detect(sentences, fixed("the")),
+  regex = str_detect(sentences, "the"),
+  times = 20
+)
+
+a1 <- "\u00e1"
+a2 <- "a\u0301"
+c(a1, a2)
+a1 == a2 # they render identically, but they're defined differently
+
+str_detect(a1, fixed(a2))
+str_detect(a1, coll(a2)) # this respetcs human character comparison rules
+
+# coll()
+i <- c("I", "İ", "i", "ı")
+str_subset(i, coll("i", ignore_case = TRUE))
+str_subset(
+  i, 
+  coll("i", ignore_case = TRUE, locale = "tr")
+)
+
+# boundary() can also bbe used with other functions
+x <- "This is a sentence"
+str_view_all(x, boundary("word"))
+
+str_extract_all(x, boundary("word"))
+
+# Other Uses of Regular Expressions
+
+# apropos(): searches all objects available from the global env
+apropos("replace") # also useful if you cant quite remember the name of a function
+
+# dir(): lists all files in a directory
+head(dir(pattern = "\\.Rmd$")) # an exapmle to find all the R-Md files in the current directory
+
+
