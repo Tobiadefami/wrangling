@@ -184,4 +184,34 @@ df %>%
 str_count("abababa", "aba")
 str_view_all("abababa", "aba")
 
-# Exact Matches
+# Extract Matches
+
+# Using the Havard Sentences
+length(sentences)
+head(sentences)
+
+# to find all seentences that contain a color
+colors <- c("red", "orange", "yellow", "green", "blue", "purple")
+color_match <- str_c(colors, collapse = "|")
+color_match
+
+# select the sentences that contain a color, and then extract the color
+has_color <- str_subset(sentences, color_match)
+matches <- str_extract(has_color, color_match)
+head(matches)
+
+# Selecting all the sentences that have one than one match
+more <- sentences[str_count(sentences, color_match) > 1]
+str_view_all(more, color_match)
+
+str_extract(more, color_match)
+
+# to get all matches
+str_extract_all(more, color_match)
+# to return a matrix
+str_extract_all(more, color_match, simplify = T)
+
+x <- c("a", "a b", "a b c")
+str_extract_all(x, "[a-z]", simplify = T)
+
+# Grouped matches
